@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automation Execution Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+    header {
+      background: linear-gradient(135deg, #1a1f2e, #2d3561);
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-bottom: 1px solid #3d4f7c;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+    header .badge {
+      background: #4f46e5;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+    }
+
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+    .full-width { grid-column: 1 / -1; }
+
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #2d3561;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 15px; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Upload */
+    .upload-zone {
+      border: 2px dashed #3d4f7c;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-zone:hover { border-color: #4f46e5; background: #1e2438; }
+    .upload-zone input { display: none; }
+    .upload-zone .icon { font-size: 2rem; margin-bottom: 10px; }
+    .upload-zone p { color: #6b7280; font-size: 0.9rem; }
+
+    /* Knoppen */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-success { background: #059669; color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-warning { background: #d97706; color: white; }
+    .btn-warning:hover { background: #b45309; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-idle { background: #374151; color: #9ca3af; }
+    .status-running { background: #065f46; color: #6ee7b7; }
+    .status-paused { background: #78350f; color: #fcd34d; }
+    .status-done { background: #1e3a5f; color: #60a5fa; }
+
+    /* Voortgang */
+    .progress-bar { background: #2d3561; border-radius: 4px; height: 8px; margin: 10px 0; }
+    .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #4f46e5, #7c3aed); transition: width 0.5s; }
+
+    /* Rijen tabel */
+    .rows-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .rows-table th { background: #0f1117; padding: 8px 12px; text-align: left; color: #6b7280; font-weight: 600; }
+    .rows-table td { padding: 8px 12px; border-bottom: 1px solid #1f2937; }
+    .rows-table tr:hover td { background: #1e2438; }
+    .row-status { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+    .row-wachtend { background: #1f2937; color: #6b7280; }
+    .row-bezig { background: #1e3a5f; color: #60a5fa; }
+    .row-klaar { background: #065f46; color: #6ee7b7; }
+    .row-fout { background: #7f1d1d; color: #fca5a5; }
+
+    /* Screenshot */
+    .screenshot-viewer {
+      background: #0f1117;
+      border: 1px solid #2d3561;
+      border-radius: 8px;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .screenshot-viewer img { max-width: 100%; border-radius: 8px; }
+    .screenshot-placeholder { color: #4b5563; text-align: center; }
+
+    /* Log */
+    .log-container {
+      background: #0f1117;
+      border: 1px solid #2d3561;
+      border-radius: 8px;
+      padding: 12px;
+      height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+    .log-entry { padding: 2px 0; }
+    .log-info { color: #a0aec0; }
+    .log-success { color: #6ee7b7; }
+    .log-warning { color: #fcd34d; }
+    .log-error { color: #fca5a5; }
+
+    /* Vraag/feedback */
+    .question-box {
+      background: #1e3a5f;
+      border: 1px solid #3b82f6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    .question-box p { margin-bottom: 10px; color: #93c5fd; }
+    .question-box input {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #3d4f7c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #e0e0e0;
+      margin-bottom: 10px;
+    }
+
+    /* Fase indicator */
+    .phases { display: flex; gap: 8px; margin-bottom: 15px; }
+    .phase {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 0.7rem;
+      background: #1f2937;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    .phase.active { background: #4f46e5; color: white; }
+
+    /* Agent URL config */
+    .config-row { display: flex; gap: 10px; align-items: center; }
+    .config-row input {
+      flex: 1;
+      background: #0f1117;
+      border: 1px solid #3d4f7c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #e0e0e0;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .stat { text-align: center; }
+    .stat .value { font-size: 1.8rem; font-weight: 700; color: #4f46e5; }
+    .stat .label { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+    .stats-row { display: flex; gap: 20px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>🤖</div>
+  <h1>Automation Execution Agent</h1>
+  <span class="badge" id="statusBadge">Wachten</span>
+</header>
+
+<div class="container">
+
+  <!-- LINKS BOVEN: Excel Upload + Controle -->
+  <div class="card">
+    <h2>📊 Excel Upload</h2>
+    <div class="upload-zone" onclick="document.getElementById('excelFile').click()">
+      <div class="icon">📂</div>
+      <p>Klik om een Excel bestand te selecteren</p>
+      <p style="font-size:0.75rem;margin-top:5px;">Kolom 1 = Referentie | Kolom 2 = Waarde</p>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="uploadExcel(this)">
+    </div>
+    <div id="uploadInfo" style="margin-top:10px;color:#6b7280;font-size:0.85rem;"></div>
+
+    <div style="margin-top:20px;">
+      <h2>🎮 Bediening</h2>
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="btn btn-success" onclick="control('start')" id="btnStart">▶ Start</button>
+        <button class="btn btn-warning" onclick="control('pause')" id="btnPause" disabled>⏸ Pauzeer</button>
+        <button class="btn btn-primary" onclick="control('resume')" id="btnResume" disabled>↩ Hervat</button>
+        <button class="btn btn-danger" onclick="control('stop')" id="btnStop" disabled>⏹ Stop</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="stats-row">
+        <div class="stat"><div class="value" id="statTotaal">0</div><div class="label">Totaal</div></div>
+        <div class="stat"><div class="value" id="statKlaar">0</div><div class="label">Klaar</div></div>
+        <div class="stat"><div class="value" id="statFout">0</div><div class="label">Fout</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- RECHTS BOVEN: Live Screenshot -->
+  <div class="card">
+    <h2>🖥️ Live Scherm (agent)</h2>
+    <div class="screenshot-viewer" id="screenshotViewer">
+      <div class="screenshot-placeholder">
+        <div style="font-size:2rem;">📷</div>
+        <p>Wacht op Windows agent...</p>
+        <p style="font-size:0.75rem;margin-top:5px;">Zorg dat agent.py draait op je PC</p>
+      </div>
+    </div>
+
+    <!-- Vraag van AI aan gebruiker -->
+    <div class="question-box" id="questionBox" style="display:none;">
+      <p>🤔 <strong>De AI heeft een vraag:</strong></p>
+      <p id="questionText"></p>
+      <input type="text" id="answerInput" placeholder="Typ je antwoord..." onkeydown="if(event.key==='Enter') stuurAntwoord()">
+      <button class="btn btn-primary" onclick="stuurAntwoord()">Verstuur antwoord</button>
+    </div>
+  </div>
+
+  <!-- LINKS ONDER: Rijen tabel -->
+  <div class="card">
+    <h2>📋 Rijen uit Excel</h2>
+    <div style="max-height:300px;overflow-y:auto;">
+      <table class="rows-table">
+        <thead>
+          <tr><th>#</th><th>Referentie</th><th>Waarde</th><th>Status</th></tr>
+        </thead>
+        <tbody id="rowsBody">
+          <tr><td colspan="4" style="text-align:center;color:#4b5563;padding:20px;">Nog geen Excel geladen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RECHTS ONDER: Log -->
+  <div class="card">
+    <h2>📜 Activiteiten Log</h2>
+    <div class="log-container" id="logContainer">
+      <div class="log-entry log-info">Systeem gestart. Wacht op Excel upload...</div>
+    </div>
+  </div>
+
+  <!-- VOLLE BREEDTE: Agent configuratie -->
+  <div class="card full-width">
+    <h2>⚙️ Agent Configuratie</h2>
+    <p style="color:#6b7280;font-size:0.85rem;margin-bottom:10px;">
+      De Windows agent (agent.py) heeft de URL van deze Replit app nodig. Kopieer de URL hieronder in het script.
+    </p>
+    <div class="config-row">
+      <input type="text" id="replitUrl" value="" placeholder="Deze URL wordt automatisch ingevuld..." readonly>
+      <button class="btn btn-primary" onclick="kopieerUrl()">📋 Kopieer</button>
+    </div>
+    <div style="margin-top:10px;padding:10px;background:#0f1117;border-radius:6px;font-family:monospace;font-size:0.8rem;color:#6ee7b7;">
+      # Zet deze URL in agent.py regel 1:<br>
+      REPLIT_URL = "<span id="urlDisplay">https://jouw-app.replit.app</span>"
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Vul de Replit URL automatisch in
+  const replitUrl = window.location.origin;
+  document.getElementById('replitUrl').value = replitUrl;
+  document.getElementById('urlDisplay').textContent = replitUrl;
+
+  let pollingInterval = null;
+
+  function uploadExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    document.getElementById('uploadInfo').textContent = 'Bezig met uploaden...';
+
+    fetch('/upload', { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById('uploadInfo').textContent = '❌ Fout: ' + data.error;
+        } else {
+          document.getElementById('uploadInfo').textContent = `✅ ${data.rijen} rijen geladen uit ${file.name}`;
+          updateUI();
+        }
+      });
+  }
+
+  function control(actie) {
+    fetch('/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actie })
+    })
+    .then(r => r.json())
+    .then(data => {
+      updateUI();
+      if (actie === 'start' || actie === 'resume') {
+        startPolling();
+      } else if (actie === 'stop' || actie === 'pause') {
+        // Blijf status pollen maar minder frequent
+      }
+    });
+  }
+
+  function startPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(updateUI, 2000);
+  }
+
+  function updateUI() {
+    fetch('/status')
+      .then(r => r.json())
+      .then(data => {
+        updateStatusBadge(data.status);
+        updateButtons(data.status);
+        updateStats(data);
+        updateRows(data.rijen);
+        updateLog(data.log);
+        updateQuestion(data.pending_question);
+      });
+
+    // Haal laatste screenshot op
+    fetch('/screenshot/latest')
+      .then(r => r.json())
+      .then(data => {
+        if (data.screenshot) {
+          const viewer = document.getElementById('screenshotViewer');
+          viewer.innerHTML = `<img src="data:image/png;base64,${data.screenshot}" alt="Live scherm">`;
+        }
+      });
+  }
+
+  function updateStatusBadge(status) {
+    const badge = document.getElementById('statusBadge');
+    const labels = { idle: 'Wachten', running: 'Bezig', paused: 'Gepauzeerd', done: 'Klaar!' };
+    badge.textContent = labels[status] || status;
+    badge.className = 'badge status-' + status;
+  }
+
+  function updateButtons(status) {
+    document.getElementById('btnStart').disabled = status === 'running' || status === 'done';
+    document.getElementById('btnPause').disabled = status !== 'running';
+    document.getElementById('btnResume').disabled = status !== 'paused';
+    document.getElementById('btnStop').disabled = status === 'idle';
+  }
+
+  function updateStats(data) {
+    const klaar = (data.rijen || []).filter(r => r.status === 'klaar').length;
+    const fout = (data.rijen || []).filter(r => r.status === 'fout').length;
+    document.getElementById('statTotaal').textContent = data.totaal || 0;
+    document.getElementById('statKlaar').textContent = klaar;
+    document.getElementById('statFout').textContent = fout;
+
+    const pct = data.totaal > 0 ? (klaar / data.totaal * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function updateRows(rijen) {
+    if (!rijen || rijen.length === 0) return;
+    const tbody = document.getElementById('rowsBody');
+    tbody.innerHTML = rijen.map((rij, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${rij.referentie}</td>
+        <td>${rij.waarde}</td>
+        <td><span class="row-status row-${rij.status}">${rij.status}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function updateLog(logs) {
+    if (!logs || logs.length === 0) return;
+    const container = document.getElementById('logContainer');
+    container.innerHTML = logs.map(l =>
+      `<div class="log-entry log-${l.level}">[${l.level.toUpperCase()}] ${l.message}</div>`
+    ).join('');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function updateQuestion(vraag) {
+    const box = document.getElementById('questionBox');
+    if (vraag) {
+      box.style.display = 'block';
+      document.getElementById('questionText').textContent = vraag;
+    } else {
+      box.style.display = 'none';
+    }
+  }
+
+  function stuurAntwoord() {
+    const antwoord = document.getElementById('answerInput').value;
+    if (!antwoord.trim()) return;
+
+    fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ antwoord })
+    }).then(() => {
+      document.getElementById('answerInput').value = '';
+      document.getElementById('questionBox').style.display = 'none';
+    });
+  }
+
+  function kopieerUrl() {
+    navigator.clipboard.writeText(replitUrl);
+    alert('URL gekopieerd!');
+  }
+
+  // Start polling bij laden
+  startPolling();
+</script>
+
+</body>
+</html>
