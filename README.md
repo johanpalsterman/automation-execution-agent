@@ -155,6 +155,69 @@ De volledige web interface werkt op iPhone en iPad via Safari of Chrome.
 
 ---
 
+## 🖥️ iPhone als afstandsbediening — PC bedienen via je telefoon
+
+Wil je niet alleen de web interface gebruiken, maar ook het **scherm van je PC live zien en bedienen** vanaf je iPhone? Dat kan via een gratis Remote Desktop app.
+
+### Hoe het werkt
+
+```
+iPhone (jij kijkt + bedient)
+        ↕ Remote Desktop app
+PC (agent.py draait + bestuurt scherm)
+        ↕ screenshots
+Replit server (AI analyseert)
+```
+
+Je iPhone wordt het venster én het stuur — de agent draait gewoon op de PC op de achtergrond. Ideaal als je weg bent van je bureau maar de automatisering wilt bewaken of ingrijpen.
+
+---
+
+### 📲 Beste gratis opties
+
+| App | Gratis | Kwaliteit | Moeilijkheid |
+|-----|:------:|-----------|:------------:|
+| **Chrome Remote Desktop** | ✅ | Goed | Makkelijk |
+| **Microsoft Remote Desktop** | ✅ | Zeer goed | Middel |
+| **AnyDesk** | ✅ (privé) | Goed | Makkelijk |
+| **TeamViewer** | ✅ (privé) | Zeer goed | Makkelijk |
+
+---
+
+### ⚡ Snelstart met Chrome Remote Desktop (aanbevolen)
+
+#### Op je PC:
+1. Open **Google Chrome** → ga naar [remotedesktop.google.com](https://remotedesktop.google.com)
+2. Klik op **"Externe toegang instellen"**
+3. Download en installeer de Chrome Remote Desktop extensie
+4. Geef je PC een naam en stel een PIN in (min. 6 cijfers)
+5. Start `agent.py` in een Command Prompt venster
+6. Laat alles draaien — je PC hoeft alleen aan te blijven
+
+#### Op je iPhone/iPad:
+1. Download **Chrome Remote Desktop** uit de App Store (gratis)
+2. Log in met **hetzelfde Google-account** als op je PC
+3. Tik op de naam van je PC in de lijst
+4. Voer de PIN in
+5. Je ziet nu het scherm van je PC live op je telefoon!
+
+#### Combinatie met de agent:
+- Open de **Replit web interface** in een apart browsertabblad op je iPhone → voor starten/stoppen en AI-vragen beantwoorden
+- Gebruik **Chrome Remote Desktop** om het scherm te bewaken → voor ingrijpen als de agent vastloopt
+- Je kunt ook via Remote Desktop direct `agent.py` starten of stoppen vanuit de Command Prompt
+
+---
+
+### 💡 Tips
+
+- **Slaapstand voorkomen:** Zorg dat je PC niet in slaapstand gaat tijdens de automatisering
+  - Windows: Instellingen → Energiebeheer → Nooit in slaapstand
+- **Scherm uitzetten mag wel:** De monitor mag uit, de PC hoeft alleen aan te blijven
+- **Thuis netwerk vs. buiten:** Chrome Remote Desktop werkt ook buiten je thuisnetwerk via internet
+- **Meerdere schermen:** In Chrome Remote Desktop kun je tussen schermen wisselen via het menu
+
+---
+
 ## 🔒 Veiligheid
 
 - **PyAutoGUI Failsafe:** Beweeg je muis snel naar de **linkerbovenhoek** van je scherm om de agent onmiddellijk te stoppen
